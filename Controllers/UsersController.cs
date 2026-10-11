@@ -19,8 +19,13 @@ namespace ProductsWithRouting.Controllers
             myUsers = data.Users;
         }
 
-        public IActionResult Index(string id)
+        [AcceptVerbs("GET", "POST")]
+        [Route("users/index")]
+        public IActionResult Index([FromForm] string id)
         {
+            if (id != "df2323eoT")
+                return Unauthorized();
+
             return View(myUsers);
         }
 

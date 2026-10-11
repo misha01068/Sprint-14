@@ -10,8 +10,12 @@ using ProductsWithRouting.Services;
 
 namespace ProductsWithRouting.Controllers
 {
+    [Route("products")]
+    [Route("items")]
+
     public class ProductsController : Controller
     {
+
         private List<Product> myProducts;
 
         public ProductsController(Data data)
@@ -19,51 +23,85 @@ namespace ProductsWithRouting.Controllers
             myProducts = data.Products;
         }
 
+        [HttpGet("")]
+        [HttpGet("index")]
+
         public IActionResult Index(int filterId, string filtername)
         {
-            return View(myProducts);
-        }
+            IEnumerable<Product> products = myProducts;
 
+            if (filterId > 0)
+                products = products.Where(p => p.Id == filterId);
+
+            if (!string.IsNullOrWhiteSpace(filtername))
+                products = products.Where(p => p.Name != null &&
+                    p.Name.Contains(filtername, StringComparison.OrdinalIgnoreCase));
+
+            return View(products.ToList());
+        }
+        [HttpGet("{id:int}")]
         public IActionResult View(int id)
         {
-            //Please, add your implementation of the method
-            return View(/*TODO: pass corresponding product here*/);
+            var product = myProducts.FirstOrDefault(p => p.Id == id);
+            if (product == null)
+                return RedirectToAction("NotFoundPage");
+            return View(product);
         }
-        [HttpGet]
+        [HttpGet("edit/{id:int}")]
         public IActionResult Edit(int id)
         {
-            //Please, add your implementation of the method
-            return View(/*TODO: pass corresponding product here*/);
+            var product = myProducts.FirstOrDefault(p => p.Id == id);
+            if (product == null)
+                return RedirectToAction("NotFoundPage");
+            return View(product);
         } 
-        [HttpPost]
-        public IActionResult Edit(Product product)
+        [HttpPost("edit/{id:int}")]
+        public IActionResult Edit(int id, Product product)
         {
-            //Please, add your implementation of the method
-            return View(/*TODO: pass corresponding product here*/);
-        } 
-        
-        [HttpPost]
+            var existing = myProducts.FirstOrDefault(p => p.Id == id);
+            if (product == null)
+                return RedirectToAction("NotFoundPage");
+            existing.Name = product.Name;
+            existing.Description = product.Description;
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost("create")]
+        [HttpPost("new")]
         public IActionResult Create(Product product)
         {
-            //Please, add your implementation of the method
-            return View(/*TODO: pass corresponding product here*/);
+            product.Id = myProducts.Any() ? myProducts.Max(p => p.Id) + 1 : 1;
+            myProducts.Add(product);
+            return RedirectToAction("Index");
         }
 
+        [HttpGet("create")]
+        [HttpGet("new")]
         public IActionResult Create()
         {
-            //Please, add your implementation of the method
-            return View(/*TODO: pass corresponding product here*/);
+            var nextId = myProducts.Any() ? myProducts.Max(p => p.Id) + 1 : 1;
+            return View(new Product { Id = nextId });
         }
 
+        [HttpGet("delete/{id:int}")]
         public IActionResult Delete(int id)
         {
-            //Please, add your implementation of the method
-            return View("Index"/*TODO: pass corresponding product here*/);
+            var product = myProducts.FirstOrDefault(p => p.Id == id);
+            if (product == null)
+                return RedirectToAction("NotFoundPage");
+            myProducts.Remove(product);
+            return RedirectToAction("Index");
         }
 
+        [Route("error")]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        [HttpGet("notfound")]
+        public IActionResult NotFoundPage()
+        {
+            return View();
         }
     }
 }
