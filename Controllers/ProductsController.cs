@@ -59,7 +59,7 @@ namespace ProductsWithRouting.Controllers
         public IActionResult Edit(int id, Product product)
         {
             var existing = myProducts.FirstOrDefault(p => p.Id == id);
-            if (product == null)
+            if (existing == null)
                 return RedirectToAction("NotFoundPage");
             existing.Name = product.Name;
             existing.Description = product.Description;
